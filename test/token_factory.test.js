@@ -35,7 +35,7 @@ describe("Token Factory", function () {
         this.byteCode = byteCode;
     });
 
-    describe("LaunchBox Token", function () {
+    describe("Token", function () {
         it("Should deploy token with known address", async function () {
             const salt = await this.factory.getdeployedTokensLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(this.byteCode, salt);
@@ -83,10 +83,10 @@ describe("Token Factory", function () {
             //If renounce ownership is checked, call thsi immediately after token deployment
             await token.connect(this.deployer).renounceOwnership();
 
-            const deployedPumpTokens = await this.factory.getdeployedTokens(this.deployerAddress);
+            const deployedTokens = await this.factory.getdeployedTokens(this.deployerAddress);
 
-            assert.equal(address, deployedPumpTokens[1]);
-            assert.equal(deployedPumpTokens.length, 2);
+            assert.equal(address, deployedTokens[1]);
+            assert.equal(deployedTokens.length, 2);
 
             await expect(
                 token.connect(this.deployer).mint(this.deployerAddress, ethers.parseEther("100000"))

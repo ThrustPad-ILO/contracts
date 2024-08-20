@@ -27,25 +27,29 @@ contract ThrustpadLocker is Ownable {
         uint256 amount
     );
 
-    constructor(address token_, uint256 lockTime_) Ownable(tx.origin) {
-        require(lockTime_ > 0, "TokenLock: lock time should greater than 0");
-        token = IERC20(token_);
+    constructor(
+        IERC20 _token,
+        uint256 _lockTime,
+        uint256 _amount
+    ) Ownable(tx.origin) {
+        require(_lockTime > 0, "TokenLock: lock time should greater than 0");
+        token = _token;
         beneficiary = tx.origin;
-        lockTime = lockTime_;
+        lockTime = _lockTime;
         startTime = block.timestamp;
 
         emit TokenLockStart(
             tx.origin,
-            address(token_),
+            address(_token),
             block.timestamp,
-            lockTime_
+            _lockTime
         );
     }
 
     function release() public onlyOwner {
         require(
             block.timestamp >= startTime + lockTime,
-            "TokenLock: current time is before release time"
+            "TokenLock: lock time not expired"
         );
 
         uint256 amount = token.balanceOf(address(this));

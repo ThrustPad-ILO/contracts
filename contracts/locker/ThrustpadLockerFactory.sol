@@ -2,26 +2,34 @@
 pragma solidity ^0.8.24;
 
 import "./ThrustpadLocker.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-contract ThrustpadTokenFactory {
+contract ThrustpadLockerFactory {
     mapping(address => address[]) public deployedLocks;
 
-    event NewLock(address indexed creator, address indexed token);
+    event NewLock(
+        address indexed creator,
+        address indexed token,
+        uint256 amount
+    );
 
-    function newToken(
-        address token,
-        uint256 lockTime
+    function newLock(
+        IERC20 token,
+        uint256 lockTime,
+        uint256 amount
     ) public returns (address) {
-        address newLaunch = address(
+        address newLocker = address(
             new ThrustpadLocker{
                 salt: bytes32(deployedLocks[msg.sender].length)
-            }(token, lockTime)
+            }(token, lockTime, amount)
         );
-        deployedLocks[msg.sender].push(newLaunch);
+        deployedLocks[msg.sender].push(newLocker);
 
-        emit NewLock(msg.sender, newLaunch);
+        token.transferFrom(msg.sender, newLocker, amount);
 
-        return address(newLaunch);
+        emit NewLock(msg.sender, newLocker, amount);
+
+        return address(newLocker);
     }
 
     function getAddressCreate2(
@@ -42,11 +50,12 @@ contract ThrustpadTokenFactory {
 
     function getBytecode(
         address token,
-        uint256 lockTime
+        uint256 lockTime,
+        uint256 amount
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadLocker).creationCode;
 
-        return abi.encodePacked(bytecode, abi.encode(token, lockTime));
+        return abi.encodePacked(bytecode, abi.encode(token, lockTime, amount));
     }
 
     function getdeployedLocksLen(
