@@ -56,8 +56,6 @@ describe("Locker Factory", function () {
             const salt = await this.factory.getdeployedLocksLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);
 
-            console.table({ address, tokenAddress });
-
             //Allow factory  to spend tokens
             await token.approve(this.factoryAddress, amount);
             await this.factory.newLock(tokenAddress, twenty4Hours, amount);
