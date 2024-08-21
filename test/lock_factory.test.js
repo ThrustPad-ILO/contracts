@@ -71,11 +71,13 @@ describe("Locker Factory", function () {
 
             assert.equal(await token.balanceOf(this.deployerAddress), 0);
             assert.equal(await token.balanceOf(address), amount);
+            assert.equal(await lock.lockAmount(), amount);
 
             await expect(lock.release()).to.not.be.reverted;
 
             assert.equal(await token.balanceOf(this.deployerAddress), amount);
             assert.equal(await token.balanceOf(address), 0);
+            assert.equal(await lock.released(), true);
 
             await expect(lock.release()).to.be.revertedWith("TokenLock: no tokens to release");
         });

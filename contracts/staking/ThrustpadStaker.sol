@@ -6,11 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-
+import "../interface/types.sol";
 import "hardhat/console.sol";
 
-contract Staking is Ownable, Pausable, ReentrancyGuard {
+contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
     IERC20 public token;
 
     enum Period {
@@ -18,19 +17,6 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         FORTY_FIVE_DAYS,
         SIXTY_DAYS,
         NINETY_DAYS
-    }
-
-    enum StakePercentage {
-        TEN,
-        TWENTY,
-        THIRTY,
-        FORTY,
-        FIFTY,
-        SIXTY,
-        SEVENTY,
-        EIGHTY,
-        NINETY,
-        HUNDRED
     }
 
     struct Stake {
@@ -56,27 +42,17 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 index;
     }
 
-    Stake[] public stakes;
-
     mapping(address => uint256[]) public userStakes;
 
-    mapping(address => bool) public claimed;
+    Stake[] internal stakes;
 
-    //metrics
+    // //metrics
     uint256 public totalStaked;
     uint256 public totalRewardsEDU;
     uint256 public totalRewardsToken;
     uint256 public totalStakes;
 
-    uint256 public eduAPY;
-    uint256 public tokenAPY;
-    uint256 public minTokenStake;
-
-    uint256 startDate;
-    uint256 endDate;
-    uint256 hardCap;
-    uint256 rewardPool;
-    uint256 tokenToEDURate;
+    stakeOption public option;
 
     event Staked(
         address indexed user,
@@ -93,32 +69,14 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 rewardToken
     );
     event ClaimedRewards(address indexed user, uint256 edu, uint256 token);
-    event ClaimedTGE(address indexed user, uint256 amount);
     event MinimumStakeUpdated(uint256 amount);
     event APYUpdated(uint256 eduAPY, uint256 tokenAPY);
     event PricesUpdated(uint256 ethPrice, uint256 TokenPrice);
 
-    constructor(
-        address _token,
-        uint256 startdate,
-        uint256 enddate,
-        uint256 hardcap,
-        uint256 minimum,
-        uint256 apyEdu,
-        uint256 apyToken,
-        uint256 deposit,
-        uint256 rate
-    ) Ownable(tx.origin) {
+    constructor(stakeOption memory _option) payable Ownable(tx.origin) {
         //set params
-        eduAPY = apyEdu;
-        tokenAPY = apyToken;
-        minTokenStake = minimum;
-        rewardPool = deposit;
-        hardCap = hardcap;
-        startDate = startdate;
-        endDate = enddate;
-
-        token = IERC20(_token);
+        option = _option;
+        token = IERC20(_option.token);
     }
 
     function pause() public onlyOwner {
@@ -133,8 +91,8 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 amount,
         Period period
     ) external payable nonReentrant whenNotPaused returns (uint256 stakeIndex) {
-        require(block.timestamp >= startDate, "Staking not started");
-        require(block.timestamp <= endDate, "Staking ended");
+        require(block.timestamp >= option.startDate, "Staking not started");
+        require(block.timestamp <= option.endDate, "Staking ended");
         require(
             token.transferFrom(msg.sender, address(this), amount),
             "Transfer failed"
@@ -220,7 +178,7 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
             365 days);
 
         uint256 eduReward = (((stake.amount * appliedEDUAPY) / 100) /
-            mantissa) / tokenToEDURate;
+            mantissa) / option.tokenToEDURate;
 
         uint256 tokenReward = (((stake.amount * appliedTokenAPY) / 100) /
             mantissa);
@@ -248,7 +206,7 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
             msg.sender,
             stake.amount,
             stake.rewardEDU - stake.claimedEDU,
-            stake.rewardDCASK - stake.claimedDCASK
+            stake.rewardToken - stake.claimedToken
         );
     }
 
@@ -256,7 +214,7 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 stakeAmt,
         Period _period
     ) private returns (uint256 stakeIndex) {
-        require(stakeAmt >= minTokenStake, "Minimum stake not met");
+        require(stakeAmt >= option.minTokenStake, "Minimum stake not met");
 
         uint256 period = _getStakingPeriod(_period);
         (uint256 ethRewardInUsd, uint256 tokenReward) = calculateRewards(
@@ -272,16 +230,16 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
                 start: block.timestamp,
                 end: block.timestamp + period,
                 rewardEDU: ethRewardInUsd,
-                rewardDCASK: tokenReward,
+                rewardToken: tokenReward,
                 period: period,
                 claimedEDU: 0,
-                claimedDCASK: 0,
+                claimedToken: 0,
                 unstaked: false,
                 owner: msg.sender,
                 priceEDU: 0,
                 priceToken: 0,
-                eduAPY: eduAPY,
-                tokenAPY: tokenAPY
+                eduAPY: option.apyEdu,
+                tokenAPY: option.apyToken
             })
         );
 
@@ -300,13 +258,16 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 period
     ) public view returns (uint256 eduRewardInUsd, uint256 tokenReward) {
         uint256 mantissa = 1000;
-        uint256 appliedEDUAPY = ((eduAPY * mantissa * period) / 365 days);
-        uint256 appliedTokenAPY = ((tokenAPY * mantissa * period) / 365 days);
+        uint256 appliedEDUAPY = ((option.apyEdu * mantissa * period) /
+            365 days);
+
+        uint256 appliedTokenAPY = ((option.apyToken * mantissa * period) /
+            365 days);
 
         tokenReward = (((stakeAmt * appliedTokenAPY) / 100) / mantissa);
         eduRewardInUsd =
             (((stakeAmt * appliedEDUAPY) / 100) / mantissa) /
-            tokenToEDURate;
+            option.tokenToEDURate;
     }
 
     function _getStakingPeriod(
@@ -323,54 +284,10 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         }
     }
 
-    function _getStakingPercentage(
-        StakePercentage stakePercentage
-    ) private pure returns (uint8 percentage) {
-        if (stakePercentage == StakePercentage.TEN) {
-            return 10;
-        } else if (stakePercentage == StakePercentage.TWENTY) {
-            return 20;
-        } else if (stakePercentage == StakePercentage.THIRTY) {
-            return 30;
-        } else if (stakePercentage == StakePercentage.FORTY) {
-            return 40;
-        } else if (stakePercentage == StakePercentage.FIFTY) {
-            return 50;
-        } else if (stakePercentage == StakePercentage.SIXTY) {
-            return 60;
-        } else if (stakePercentage == StakePercentage.SEVENTY) {
-            return 70;
-        } else if (stakePercentage == StakePercentage.EIGHTY) {
-            return 80;
-        } else if (stakePercentage == StakePercentage.NINETY) {
-            return 90;
-        } else if (stakePercentage == StakePercentage.HUNDRED) {
-            return 100;
-        }
-    }
-
     function updateMinTokenStake(uint256 amount) public onlyOwner {
-        minTokenStake = amount;
+        option.minTokenStake = amount;
 
         emit MinimumStakeUpdated(amount);
-    }
-
-    function getLatestPrice(
-        bytes[] calldata priceUpdateData
-    ) public returns (uint256 ethPrice) {
-        return _getPrice(priceUpdateData);
-    }
-
-    function _getPrice(
-        bytes[] calldata priceUpdateData
-    ) private returns (uint256 ethPrice) {
-        return 4.5e17; //Defaults to USD 0.45
-    }
-
-    function getPriceEDU(
-        bytes[] calldata priceUpdate
-    ) public payable returns (uint256) {
-        return _getPrice(priceUpdate);
     }
 
     function _calculateProportion(
@@ -385,8 +302,8 @@ contract Staking is Ownable, Pausable, ReentrancyGuard {
         uint256 _eduAPY,
         uint256 _tokenAPY
     ) external whenNotPaused onlyOwner {
-        eduAPY = _eduAPY;
-        tokenAPY = _tokenAPY;
+        option.apyEdu = _eduAPY;
+        option.apyToken = _tokenAPY;
 
         emit APYUpdated(_eduAPY, _tokenAPY);
     }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "./ThrustpadToken.sol";
-import "./interface/token/types.sol";
+import "../interface/types.sol";
 
 contract ThrustpadTokenFactory {
     mapping(address => address[]) public deployedTokens;

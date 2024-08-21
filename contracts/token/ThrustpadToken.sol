@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interface/token/types.sol";
+import "../interface/types.sol";
 import "hardhat/console.sol";
 
 contract ThrustpadToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {

@@ -13,6 +13,10 @@ contract ThrustpadLocker is Ownable {
 
     uint256 public immutable startTime;
 
+    uint256 public immutable lockAmount;
+
+    bool public released = false;
+
     event TokenLockStart(
         address indexed beneficiary,
         address indexed token,
@@ -37,6 +41,7 @@ contract ThrustpadLocker is Ownable {
         beneficiary = tx.origin;
         lockTime = _lockTime;
         startTime = block.timestamp;
+        lockAmount = _amount;
 
         emit TokenLockStart(
             tx.origin,
@@ -56,6 +61,7 @@ contract ThrustpadLocker is Ownable {
         require(amount > 0, "TokenLock: no tokens to release");
 
         token.transfer(beneficiary, amount);
+        released = true;
 
         emit Release(msg.sender, address(token), block.timestamp, amount);
     }
