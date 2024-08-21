@@ -1,6 +1,8 @@
 # Thrustpad Contracts
 
 
+📖 Docs: https://thrustpad.gitbook.io/docs  
+🌐 Website: https://www.thrustpad.finance
 
 | Name | Address |
 | :------ | :------ |
