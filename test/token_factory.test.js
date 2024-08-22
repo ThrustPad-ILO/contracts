@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 const name = "Fairy Plum";
 const symbol = "FPLUM";
 const decimals = 18;
-const tokenSupply = ethers.parseEther("1000000000");
+const tokenSupply = 1000000000;
 const launchType = {
     mintable: false,
     pausable: false,
@@ -49,6 +49,8 @@ describe("Token Factory", function () {
 
             const token = await ethers.getContractAt("ThrustpadToken", address);
 
+            assert.equal(await token.totalSupply(), ethers.parseEther(tokenSupply.toString()));
+
             await expect(
                 token.connect(this.deployer).mint(this.deployerAddress, ethers.parseEther("100000"))
             ).to.be.revertedWith("minting is disabled");
@@ -58,7 +60,7 @@ describe("Token Factory", function () {
             expect(await token.connect(this.deployer).renounceOwnership()).not.to.be.reverted;
         });
 
-        it("Should deploy token with launch type mintable, renonced, pausable and burnable", async function () {
+        it("Should deploy token with launch type mintable, renounced, pausable and burnable", async function () {
             const launchType = {
                 mintable: true,
                 pausable: true,
