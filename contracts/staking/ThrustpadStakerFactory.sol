@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "./ThrustpadStaker.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../interface/types.sol";
 
 /**
@@ -24,6 +25,10 @@ contract ThrustpadStakerFactory {
     ) public payable returns (address) {
         require(option.apyEdu >= 2, "APY EDU must be greater than 2");
         require(option.apyToken >= 8, "APY Token must be greater than 8");
+        require(
+            ERC20(option.token).decimals() == 18,
+            "ThrustpadStakerFactory: token must have 18 decimals"
+        );
 
         uint256 tokenNeeded = (option.hardCap * option.apyToken) / 100;
         uint256 eduNeeded = ((option.hardCap * option.apyEdu) / 100) /

@@ -20,4 +20,18 @@ struct LaunchType {
     bool burnable;
 }
 
+struct FairLaunchConfig {
+    address token;
+    uint256 softCap;
+    uint256 hardCap;
+    uint256 amountForSale;
+    uint256 listingRate;
+    uint256 minimumBuy;
+    uint256 maximumBuy;
+    uint256 percentageForLiquidity;
+    uint256 percentageForTeam;
+    uint256 startDate;
+    uint256 endDate;
+}
+
 interface ThrustpadType {}
