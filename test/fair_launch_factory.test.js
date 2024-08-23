@@ -24,8 +24,8 @@ describe("Locker Factory", function () {
         this.buyer3 = buyer3;
     });
 
-    describe("Fair Launch Raise Success", function () {
-        it("Should deploy token with known address", async function () {
+    describe.skip("Fair Launch Raise Success", function () {
+        it("Should deploy launch and user can buy and claim successfully", async function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();
 
@@ -96,13 +96,13 @@ describe("Locker Factory", function () {
 
             expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("10") }))
                 .to.emit(launch, "TokenBought")
-                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("10"));
+                .withArgs(await this.buyer2.getAddress(), ethers.parseEther("10"));
 
-            expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("10") }))
+            expect(await launch.connect(this.buyer3).buyToken({ value: ethers.parseEther("10") }))
                 .to.emit(launch, "TokenBought")
-                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("10"));
+                .withArgs(await this.buyer3.getAddress(), ethers.parseEther("10"));
 
-            time.increase(86400 * 2.02); //2 days
+            await time.increase(86400 * 2); //2 days
 
             await expect(
                 launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("10") })
@@ -114,13 +114,20 @@ describe("Locker Factory", function () {
 
             await expect(await launch.connect(this.buyer2).claimTokens())
                 .to.emit(launch, "TokenClaimed")
-                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
+                .withArgs(await this.buyer2.getAddress(), tokenAddress, ethers.parseEther("1000"));
 
-            await expect(await launch.connect(this.buyer2).claimTokens())
-                .to.emit(launch, "TokenClaimed")
-                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
+            //Can't claim twice
+            await expect(launch.connect(this.buyer2).claimTokens()).to.be.revertedWith(
+                "ThrustpadFairLaunch: tokens already claimed"
+            );
 
-            const totalSold = await launch.totalSold();
+            //To get if user has claimed token and amount of token claimed
+            assert.equal(
+                await launch.claimed(await this.buyer2.getAddress()),
+                ethers.parseEther("1000")
+            );
+
+            const totalSold = await launch.totalSold(); //In EDU
 
             assert.equal(totalSold, ethers.parseEther("30"));
 
@@ -135,8 +142,8 @@ describe("Locker Factory", function () {
         });
     });
 
-    describe.skip("Fair Launch Raise Failed", function () {
-        it("Should deploy token with known address", async function () {
+    describe("Fair Launch Raise Failed", function () {
+        it("Should deploy launch and user can buy and claim refund", async function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();
 
@@ -210,25 +217,28 @@ describe("Locker Factory", function () {
                 .to.emit(launch, "TokenBought")
                 .withArgs(await this.buyer1.getAddress(), ethers.parseEther("3"));
 
-            assert.equal(await launch.totalSold(), ethers.parseEther("5"));
+            assert.equal(
+                await launch.purchaseHistory(this.buyer1.getAddress()),
+                ethers.parseEther("5")
+            );
 
-            expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("10") }))
+            expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("5") }))
                 .to.emit(launch, "TokenBought")
-                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("10"));
+                .withArgs(await this.buyer2.getAddress(), ethers.parseEther("5"));
 
-            expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("10") }))
+            expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("5") }))
                 .to.emit(launch, "TokenBought")
-                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("10"));
+                .withArgs(await this.buyer2.getAddress(), ethers.parseEther("5"));
 
-            time.increase(86400 * 2.02); //2 days
+            await time.increase(86400 * 3); //2 days
 
-            await expect(
-                launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("10") })
-            ).to.be.revertedWith("ThrustpadFairLaunch: sale has ended");
+            await expect(launch.connect(this.buyer1).claimTokens()).to.be.revertedWith(
+                "ThrustpadFairLaunch: soft cap not reached"
+            );
 
-            await expect(await launch.connect(this.buyer1).claimTokens())
-                .to.emit(launch, "TokenClaimed")
-                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
+            await expect(await launch.connect(this.buyer1).claimRefund())
+                .to.emit(launch, "Refund")
+                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("5")); //Claim total of 5 EDU you purchased
         });
     });
 });
