@@ -112,6 +112,14 @@ describe("Locker Factory", function () {
                 .to.emit(launch, "TokenClaimed")
                 .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
 
+            await expect(await launch.connect(this.buyer2).claimTokens())
+                .to.emit(launch, "TokenClaimed")
+                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
+
+            await expect(await launch.connect(this.buyer2).claimTokens())
+                .to.emit(launch, "TokenClaimed")
+                .withArgs(await this.buyer1.getAddress(), tokenAddress, ethers.parseEther("1000"));
+
             const totalSold = await launch.totalSold();
 
             assert.equal(totalSold, ethers.parseEther("30"));
@@ -121,7 +129,9 @@ describe("Locker Factory", function () {
                 .to.emit(launch, "TeamClaimed")
                 .withArgs(this.deployerAddress, tokenAddress, ethers.parseEther("12"));
 
-            //Anyone can call the deploy Liquidity function
+            //Anyone can call the deploy Liquidity function after sale end and is successful
+
+            // await expect(await launch.deployLiquidity()).to.emit(launch, "LiquidityDeployed");
         });
     });
 
@@ -175,8 +185,8 @@ describe("Locker Factory", function () {
             assert.equal(deployedLaunches.length, 1);
 
             //Lets test purchase flow user 3 other different accounts
-            //Case: 1
-            //Soft cap is filled and sale ended and user claim tokens they purchased
+            //Case: 2
+            //Soft cap is not filled and sale ended and user claim back the EDU tokene they use to purchased
             await expect(
                 launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("11") })
             ).to.be.revertedWith("ThrustpadFairLaunch: sale has not started yet"); //use buyer1 account
@@ -191,9 +201,16 @@ describe("Locker Factory", function () {
                 launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("11") })
             ).to.be.revertedWith("ThrustpadFairLaunch: amount is more than maximum buy");
 
-            expect(await launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("10") }))
+            //A user can buy multiple times
+            expect(await launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("2") }))
                 .to.emit(launch, "TokenBought")
-                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("10"));
+                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("2"));
+
+            expect(await launch.connect(this.buyer1).buyToken({ value: ethers.parseEther("3") }))
+                .to.emit(launch, "TokenBought")
+                .withArgs(await this.buyer1.getAddress(), ethers.parseEther("3"));
+
+            assert.equal(await launch.totalSold(), ethers.parseEther("5"));
 
             expect(await launch.connect(this.buyer2).buyToken({ value: ethers.parseEther("10") }))
                 .to.emit(launch, "TokenBought")
