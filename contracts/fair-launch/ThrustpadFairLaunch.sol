@@ -104,7 +104,7 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         );
 
         uint256 pricePerToken = config.amountForSale / config.hardCap;
-        uint256 purchase = purchaseHistory[msg.sender] / pricePerToken;
+        uint256 purchase = purchaseHistory[msg.sender] * pricePerToken;
 
         claimed[msg.sender] = purchase;
 

@@ -2,7 +2,7 @@ const { expect, assert, should } = require("chai");
 const { ethers } = require("hardhat");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
-const twenty4Hours = 86400;
+const twenty4Hours = 86400; //24 hours in seconds
 
 describe("Locker Factory", function () {
     before(async function () {

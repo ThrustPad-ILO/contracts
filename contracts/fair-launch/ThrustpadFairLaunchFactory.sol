@@ -18,37 +18,63 @@ contract ThrustpadFairLaunchFactory {
             ERC20(config.token).decimals() == 18,
             "ThrustpadFairLaunchFactory: token must have 18 decimals"
         );
+
+        require(
+            config.percentageForLiquidity >= 60,
+            "ThrustpadFairLaunchFactory: percentage for Liquidity cannot be less than 60"
+        );
+        require(
+            config.percentageForTeam <= 40,
+            "ThrustpadFairLaunchFactory: percentage for Team cannot be less than 40"
+        );
+        require(
+            config.percentageForLiquidity + config.percentageForTeam == 100,
+            "ThrustpadFairLaunchFactory: percentage for Liquidity + percentage for Team must be equal to 100"
+        );
+
+        uint256 totalAmount;
+
+        unchecked {
+            require(
+                config.softCap >= config.hardCap / 4,
+                "ThrustpadFairLaunchFactory: softCap must be greater than or equal to 25% of hardCap"
+            );
+            /**
+             * Here's the Math:
+             * if hardCap is 100 EDU and amountForSale is 10,000 Tokens
+             * presale rate is 100 Tokens per EDU token.
+             *
+             * If listing rate is 90 Tokens per EDU token,
+             * assuming percentageForLiquidity 60% of hardCap and hardCap of 100 EDU is reached
+             * totalAmount of token required = amountForSale + (percentageForLiquidity * hardCap * listingRate)
+             *
+             * totalAmount  = 10,000 + (0.6 * 100 * 90) = 15,400
+             *                      OR
+             * totalAmount = 10,000 + (60 * 100 * 90)/100 = 15,400
+             *
+             * 10,000 will be claimed by purchasers and 5,400 will be locked in liquidity pool
+             *
+             * 60 EDU for 5400 Tokens.
+             *
+             * 1 EDU for 90 Tokens
+             */
+            totalAmount =
+                config.amountForSale +
+                (config.percentageForLiquidity *
+                    config.hardCap *
+                    config.listingRate) /
+                (100 * 1 ether);
+        }
+
+        //No need to check for allowance  given to factory is equal to totalAmount or
+        //if user have enought balance of tokens equal to totalAmount
+        //It will revert upon transferFrom if enough allowance is not given
         address newLaunch = address(
             new ThrustpadFairLaunch{
                 salt: bytes32(deployedLaunches[msg.sender].length)
             }(config)
         );
         deployedLaunches[msg.sender].push(newLaunch);
-
-        /**
-         * Here's the Math:
-         * if hardCap is 100 EDU and amountForSale is 10,000 Tokens
-         * presale rate is 100 Tokens per EDU token.
-         *
-         * If listing rate is 90 Tokens per EDU token,
-         * assuming percentageForLiquidity 60% of hardCap and hardCap of 100 EDU is reached
-         * totalAmount of token required = amountForSale + (percentageForLiquidity * hardCap * listingRate)
-         *
-         * totalAmount  = 10,000 + (0.6 * 100 * 90) = 15,400
-         *                      OR
-         * totalAmount = 10,000 + (60 * 100 * 90)/100 = 15,400
-         *
-         * 10,000 will be claimed by purchasers and 5,400 will be locked in liquidity pool
-         *
-         * 60 EDU for 5400 Tokens.
-         *
-         * 1 EDU for 90 Tokens
-         */
-        uint256 totalAmount = config.amountForSale +
-            (config.percentageForLiquidity *
-                config.hardCap *
-                config.listingRate) /
-            100;
 
         IERC20(config.token).transferFrom(
             msg.sender,

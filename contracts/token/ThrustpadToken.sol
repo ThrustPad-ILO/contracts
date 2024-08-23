@@ -10,14 +10,17 @@ import "../interface/types.sol";
 contract ThrustpadToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
     LaunchType public launchType;
 
+    uint256 public _decimals;
+
     constructor(
         string memory name,
         string memory symbol,
-        uint256 decimals,
+        uint256 tokenDecimals,
         uint256 supply,
         LaunchType memory _launchType
     ) ERC20(name, symbol) Ownable(tx.origin) {
-        _mint(tx.origin, supply * 10 ** decimals);
+        _decimals = tokenDecimals;
+        _mint(tx.origin, supply * 10 ** tokenDecimals);
         launchType = _launchType;
     }
 
@@ -39,6 +42,10 @@ contract ThrustpadToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
     function burn(uint256 amount) public override {
         require(launchType.burnable == true, "burning is disabled");
         _burn(_msgSender(), amount);
+    }
+
+    function decimals() public view override returns (uint8) {
+        return uint8(_decimals);
     }
 
     // The following functions are overrides required by Solidity.
