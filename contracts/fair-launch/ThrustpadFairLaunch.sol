@@ -48,6 +48,8 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
 
     uint256 public totalSold;
 
+    uint256 public totalContributors;
+
     address public LPTokenAddress;
 
     mapping(address => uint256) public purchaseHistory;
@@ -84,6 +86,7 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         );
 
         totalSold += msg.value;
+        totalContributors += 1;
         purchaseHistory[msg.sender] += msg.value;
 
         emit TokenBought(msg.sender, config.token, msg.value);
