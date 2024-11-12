@@ -184,11 +184,16 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
             "ThrustpadFairLaunch: soft cap not reached"
         );
 
-        //@Todo: Check if pair already exists
-        address pair = IFactory(sailFishStablePoolFactory).deploy(
-            NATIVE_TOKEN,
-            toToken(IERC20(config.token))
-        );
+        address pair;
+
+        pair = IVault(sailFishVault).getPair(config.token, address(0x0));
+
+        if (pair == address(0x0)) {
+            pair = IFactory(sailFishStablePoolFactory).deploy(
+                NATIVE_TOKEN,
+                toToken(IERC20(config.token))
+            );
+        }
 
         LPTokenAddress = pair;
 
@@ -221,21 +226,20 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         emit LiquidityDeployed(pair, config.token, lpTokenBalance);
     }
 
-    function claimLPTokens(address _LPTokenAddress) public onlyOwner {
+    function claimLPTokens() public onlyOwner {
         require(
             block.timestamp >= config.endDate + 30 days,
             "ThrustpadFairLaunch: Lock period not over yet"
         );
 
-        address lpAddress = _LPTokenAddress != address(0x0)
-            ? _LPTokenAddress
-            : LPTokenAddress;
-        uint256 lpTokenBalance = IERC20(lpAddress).balanceOf(address(this));
+        uint256 lpTokenBalance = IERC20(LPTokenAddress).balanceOf(
+            address(this)
+        );
 
         if (lpTokenBalance > 0) {
-            IERC20(lpAddress).transfer(msg.sender, lpTokenBalance);
+            IERC20(LPTokenAddress).transfer(msg.sender, lpTokenBalance);
 
-            emit LPTokensClaimed(msg.sender, lpAddress, lpTokenBalance);
+            emit LPTokensClaimed(msg.sender, LPTokenAddress, lpTokenBalance);
         }
     }
 
