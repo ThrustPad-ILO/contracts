@@ -303,15 +303,15 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         claimAmt = amount - stakeAmt;
     }
 
-    function updateAPY(
-        uint256 _eduAPY,
-        uint256 _tokenAPY
-    ) external whenNotPaused onlyOwner {
-        option.apyEdu = _eduAPY;
-        option.apyToken = _tokenAPY;
+    // function updateAPY(
+    //     uint256 _eduAPY,
+    //     uint256 _tokenAPY
+    // ) external whenNotPaused onlyOwner {
+    //     option.apyEdu = _eduAPY;
+    //     option.apyToken = _tokenAPY;
 
-        emit APYUpdated(_eduAPY, _tokenAPY);
-    }
+    //     emit APYUpdated(_eduAPY, _tokenAPY);
+    // }
 
     // withdraw functions
     function withdrawEDU(address recipient, uint256 amount) public onlyOwner {
