@@ -34,7 +34,7 @@ contract ThrustpadInstantAirdrop is Ownable, ReentrancyGuard {
         claimed[msg.sender] = true;
         totalClaimed += amount;
 
-        token.transfer(address(this), amount);
+        token.transfer(msg.sender, amount);
 
         emit Claimed(msg.sender, amount);
     }

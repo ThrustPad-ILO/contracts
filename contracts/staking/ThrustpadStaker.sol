@@ -37,6 +37,8 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
     }
 
     struct ClaimableReward {
+        uint256 totalEduReward;
+        uint256 totalTokenReward;
         uint256 edu;
         uint256 token;
         uint256 index;
@@ -136,7 +138,8 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         uint256 stakeIndex
     ) public nonReentrant whenNotPaused {
         require(stakes[stakeIndex].owner == msg.sender, "Not owner");
-
+        require(option.startDate < block.timestamp, "Staking not started");
+        
         Stake storage stake = stakes[stakeIndex];
 
         require(!stake.unstaked, "Already unstaked");
@@ -185,6 +188,8 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
 
         return
             ClaimableReward({
+                totalEduReward: eduReward,
+                totalTokenReward: tokenReward,
                 edu: eduReward - stake.claimedEDU,
                 token: tokenReward - stake.claimedToken,
                 index: stakeIndex

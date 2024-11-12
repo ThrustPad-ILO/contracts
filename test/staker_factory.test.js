@@ -7,16 +7,16 @@ const twenty4Hours = 86400;
 describe("Staker Factory", function () {
     before(async function () {
         const [deployer, staker1, staker2] = await ethers.getSigners();
-        // const ThrustpadStakerFactory = await ethers.getContractFactory("ThrustpadStakerFactory");
-        // const factory = await ThrustpadStakerFactory.deploy();
+        const ThrustpadStakerFactory = await ethers.getContractFactory("ThrustpadStakerFactory");
+        const factory = await ThrustpadStakerFactory.deploy();
 
-        // await factory.waitForDeployment();
+        await factory.waitForDeployment();
 
-        // this.factory = factory;
-        this.factory = await ethers.getContractAt(
-            "ThrustpadStakerFactory",
-            "0xbd12Ffb8c5e6676A7cA18DA7B36a912c85Ce8B17"
-        );
+        this.factory = factory;
+        // this.factory = await ethers.getContractAt(
+        //     "ThrustpadStakerFactory",
+        //     "0xbd12Ffb8c5e6676A7cA18DA7B36a912c85Ce8B17"
+        // );
         this.factoryAddress = await this.factory.getAddress();
         this.deployer = deployer;
         this.deployerAddress = await deployer.getAddress();

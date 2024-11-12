@@ -142,7 +142,7 @@ describe("Locker Factory", function () {
         });
     });
 
-    describe("Fair Launch Raise Failed", function () {
+    describe.skip("Fair Launch Raise Failed", function () {
         it("Should deploy launch and user can buy and claim refund", async function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();

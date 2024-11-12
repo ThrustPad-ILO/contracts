@@ -10,8 +10,6 @@ import "./interfaces/sailfish/IFactory.sol";
 import {IVault} from "./interfaces/sailfish/IVault.sol";
 import "./libs/Token.sol";
 
-import "hardhat/console.sol";
-
 contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
     FairLaunchConfig public config;
 
@@ -50,7 +48,15 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
 
     uint256 public totalContributors;
 
+    bool public liquidityDeployed;
+
+    bool public teamClaimed;
+
     address public LPTokenAddress;
+
+    bool internal _allowEmergencyTransferToken;
+
+    bool internal _allowEmergencyTransferEDU;
 
     mapping(address => uint256) public purchaseHistory;
     mapping(address => uint256) public claimed; //Token claim or refund
@@ -58,6 +64,8 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
     address sailFishStablePoolFactory =
         0x1CcC7382d46313C24e1D13510B1C9445A792f4d4;
     address sailFishVault = 0xB97582DCB6F2866098cA210095a04dF3e11B76A6;
+
+    address THRUSTPAD_MULTISIG = 0x83E46e6E193B284d26f7A4B7D865B65952A50Bf2;
 
     constructor(FairLaunchConfig memory _config) Ownable(tx.origin) {
         config = _config;
@@ -83,6 +91,10 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         require(
             totalSold + msg.value <= config.hardCap,
             "ThrustpadFairLaunch: hard cap reached"
+        );
+        require(
+            purchaseHistory[msg.sender] + msg.value <= config.maximumBuy,
+            "ThrustpadFairLaunch: wallet has reached maximum buy"
         );
 
         totalSold += msg.value;
@@ -148,15 +160,21 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
             totalSold >= config.softCap,
             "ThrustpadFairLaunch: soft cap not reached"
         );
+        require(
+            !teamClaimed,
+            "ThrustpadFairLaunch: team tokens already claimed"
+        );
 
         uint256 teamTokens = (config.percentageForTeam * totalSold) / 100;
+
+        teamClaimed = true;
 
         payable(owner()).transfer(teamTokens);
 
         emit TeamClaimed(owner(), config.token, teamTokens);
     }
 
-    function deployLiquidity() public {
+    function deployLiquidity() public onlyOwner {
         require(
             block.timestamp >= config.endDate,
             "ThrustpadFairLaunch: sale has not ended yet"
@@ -166,6 +184,7 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
             "ThrustpadFairLaunch: soft cap not reached"
         );
 
+        //@Todo: Check if pair already exists
         address pair = IFactory(sailFishStablePoolFactory).deploy(
             NATIVE_TOKEN,
             toToken(IERC20(config.token))
@@ -193,30 +212,55 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         //Burn remaining tokens
         uint256 remainingToken = IERC20(config.token).balanceOf(address(this));
 
-        IERC20(config.token).transfer(address(0), remainingToken);
+        IERC20(config.token).transfer(address(0x0), remainingToken);
 
         uint256 lpTokenBalance = IERC20(pair).balanceOf(address(this));
+
+        liquidityDeployed = true;
 
         emit LiquidityDeployed(pair, config.token, lpTokenBalance);
     }
 
-    function claimLPTokens() public onlyOwner {
+    function claimLPTokens(address _LPTokenAddress) public onlyOwner {
         require(
             block.timestamp >= config.endDate + 30 days,
             "ThrustpadFairLaunch: Lock period not over yet"
         );
-        require(
-            LPTokenAddress != address(0),
-            "ThrustpadFairLaunch: LP tokens not deployed yet"
-        );
 
-        uint256 lpTokenBalance = IERC20(LPTokenAddress).balanceOf(
-            address(this)
-        );
+        address lpAddress = _LPTokenAddress != address(0x0)
+            ? _LPTokenAddress
+            : LPTokenAddress;
+        uint256 lpTokenBalance = IERC20(lpAddress).balanceOf(address(this));
 
-        IERC20(LPTokenAddress).transfer(msg.sender, lpTokenBalance);
+        if (lpTokenBalance > 0) {
+            IERC20(lpAddress).transfer(msg.sender, lpTokenBalance);
 
-        emit LPTokensClaimed(msg.sender, LPTokenAddress, lpTokenBalance);
+            emit LPTokensClaimed(msg.sender, lpAddress, lpTokenBalance);
+        }
+    }
+
+    function allowEmergencyTransferEDU(bool _allow) public onlyOwner {
+        require(block.timestamp >= config.endDate, "Not authorized");
+        _allowEmergencyTransferEDU = _allow;
+    }
+
+    function allowEmergencyTransferToken(bool _allow) public onlyOwner {
+        require(block.timestamp >= config.endDate, "Not authorized");
+        _allowEmergencyTransferToken = _allow;
+    }
+
+    function emergencyTransfer(address _token, uint256 _amount) public {
+        require(block.timestamp >= config.endDate, "Not authorized");
+        require(msg.sender == THRUSTPAD_MULTISIG, "Not authorized");
+
+        IERC20(_token).transfer(msg.sender, _amount);
+    }
+
+    function emergencyTransferEDU(uint256 _amount) public {
+        require(block.timestamp >= config.endDate, "Not authorized");
+        require(msg.sender == THRUSTPAD_MULTISIG, "Not authorized");
+
+        payable(msg.sender).transfer(_amount);
     }
 
     receive() external payable {}
