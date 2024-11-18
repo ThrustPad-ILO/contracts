@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "./ThrustpadToken.sol";
 import "../interface/types.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
 
 contract ThrustpadTokenFactory is Ownable {
     mapping(address => address[]) public deployedTokens;
