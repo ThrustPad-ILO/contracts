@@ -40,7 +40,9 @@ describe("Token Factory", function () {
             const salt = await this.factory.getdeployedTokensLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(this.byteCode, salt);
 
-            await this.factory.newToken(name, symbol, decimals, tokenSupply, launchType);
+            await this.factory.newToken(name, symbol, decimals, tokenSupply, launchType, {
+                value: ethers.parseEther("1"), //Add creation fee
+            });
 
             const deployedPumpTokens = await this.factory.getdeployedTokens(this.deployerAddress);
 
@@ -78,7 +80,9 @@ describe("Token Factory", function () {
             const salt = await this.factory.getdeployedTokensLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);
 
-            await this.factory.newToken(name, symbol, decimals, tokenSupply, launchType);
+            await this.factory.newToken(name, symbol, decimals, tokenSupply, launchType, {
+                value: ethers.parseEther("1"), //Add creation fee
+            });
 
             const token = await ethers.getContractAt("ThrustpadToken", address);
 

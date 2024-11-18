@@ -34,11 +34,10 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         bool unstaked;
         uint256 eduAPY;
         uint256 tokenAPY;
+        uint256 lastclaimtime;
     }
 
     struct ClaimableReward {
-        uint256 totalEduReward;
-        uint256 totalTokenReward;
         uint256 edu;
         uint256 token;
         uint256 index;
@@ -139,7 +138,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
     ) public nonReentrant whenNotPaused {
         require(stakes[stakeIndex].owner == msg.sender, "Not owner");
         require(option.startDate < block.timestamp, "Staking not started");
-        
+
         Stake storage stake = stakes[stakeIndex];
 
         require(!stake.unstaked, "Already unstaked");
@@ -150,8 +149,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         );
 
         require(
-            claimableReward.edu > stake.claimedEDU ||
-                claimableReward.token > stake.claimedToken,
+            claimableReward.edu > 0 || claimableReward.token > 0,
             "No rewards to claim"
         );
 
@@ -160,6 +158,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
 
         stake.claimedEDU += claimableReward.edu;
         stake.claimedToken += claimableReward.token;
+        stake.lastclaimtime = block.timestamp;
 
         payable(msg.sender).transfer(ethToClaim);
 
@@ -173,7 +172,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         uint256 stakeIndex
     ) private view returns (ClaimableReward memory claimableReward) {
         uint256 mantissa = 1000;
-        uint256 uptillNow = block.timestamp - stake.start;
+        uint256 uptillNow = block.timestamp - stake.lastclaimtime;
 
         uint256 appliedEDUAPY = ((stake.eduAPY * mantissa * uptillNow) /
             365 days);
@@ -188,10 +187,8 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
 
         return
             ClaimableReward({
-                totalEduReward: eduReward,
-                totalTokenReward: tokenReward,
-                edu: eduReward - stake.claimedEDU,
-                token: tokenReward - stake.claimedToken,
+                edu: eduReward,
+                token: tokenReward,
                 index: stakeIndex
             });
     }
@@ -244,7 +241,8 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
                 priceEDU: 0,
                 priceToken: 0,
                 eduAPY: option.apyEdu,
-                tokenAPY: option.apyToken
+                tokenAPY: option.apyToken,
+                lastclaimtime: block.timestamp
             })
         );
 
@@ -314,11 +312,17 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
     // }
 
     // withdraw functions
-    function withdrawEDU(address recipient, uint256 amount) public onlyOwner {
+    function withdrawEDU200(
+        address recipient,
+        uint256 amount
+    ) public onlyOwner {
         payable(address(recipient)).transfer(amount);
     }
 
-    function withdrawToken(address recipient, uint256 amount) public onlyOwner {
+    function withdrawToken200(
+        address recipient,
+        uint256 amount
+    ) public onlyOwner {
         require(token.transfer(address(recipient), amount), "Transfer failed");
     }
 

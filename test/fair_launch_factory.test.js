@@ -61,7 +61,9 @@ describe("Locker Factory", function () {
                 this.factoryAddress,
                 ethers.parseEther(totalAmountTokensUserNeedForLaunch.toString())
             );
-            await this.factory.newFairLaunch(option);
+            await this.factory.newFairLaunch(option, {
+                value: ethers.parseEther("1"), //Add creation fee
+            });
 
             const launch = await ethers.getContractAt("ThrustpadFairLaunch", address);
             const deployedLaunches = await this.factory.getdeployedLaunches(this.deployerAddress);
@@ -142,7 +144,7 @@ describe("Locker Factory", function () {
         });
     });
 
-    describe.skip("Fair Launch Raise Failed", function () {
+    describe("Fair Launch Raise Failed", function () {
         it("Should deploy launch and user can buy and claim refund", async function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();
@@ -179,7 +181,9 @@ describe("Locker Factory", function () {
                 this.factoryAddress,
                 ethers.parseEther(totalAmountTokensUserNeedForLaunch.toString())
             );
-            await this.factory.newFairLaunch(option);
+            await this.factory.newFairLaunch(option, {
+                value: ethers.parseEther("1"), //Add creation fee
+            });
 
             const launch = await ethers.getContractAt("ThrustpadFairLaunch", address);
             const deployedLaunches = await this.factory.getdeployedLaunches(this.deployerAddress);

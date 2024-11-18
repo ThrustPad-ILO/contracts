@@ -31,7 +31,9 @@ describe("Locker Factory", function () {
 
             //Allow factory  to spend tokens
             await token.approve(this.factoryAddress, amount);
-            await this.factory.newLock(tokenAddress, twenty4Hours, amount);
+            await this.factory.newLock(tokenAddress, twenty4Hours, amount, {
+                value: ethers.parseEther("1"), //Add creation
+            });
 
             const deployedLocks = await this.factory.getdeployedLocks(this.deployerAddress);
             const lock = await ethers.getContractAt("ThrustpadLocker", address);
@@ -58,7 +60,9 @@ describe("Locker Factory", function () {
 
             //Allow factory  to spend tokens
             await token.approve(this.factoryAddress, amount);
-            await this.factory.newLock(tokenAddress, twenty4Hours, amount);
+            await this.factory.newLock(tokenAddress, twenty4Hours, amount, {
+                value: ethers.parseEther("1"), //Add creation
+            });
 
             const deployedLocks = await this.factory.getdeployedLocks(this.deployerAddress);
 

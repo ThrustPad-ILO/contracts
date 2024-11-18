@@ -33,7 +33,7 @@ describe("Staker Factory", function () {
 
             const currBlockTime = blockData.timestamp;
             //await time.latest();
-            console.log("Current block time: ", currBlockTime);
+            // console.log("Current block time: ", currBlockTime);
             const rate = 100; //1 EDU 1000 token
             const hardcap = 1000;
             const apyEdu = 3;
@@ -41,7 +41,7 @@ describe("Staker Factory", function () {
             const rewardDepositToken = hardcap * (apyToken / 100); //8% tokenAPY
             const rewardDepositEdu = (hardcap * (apyEdu / 100)) / rate; //2% eduAPY
 
-            console.log(rewardDepositEdu, rewardDepositToken);
+            // console.log(rewardDepositEdu, rewardDepositToken);
 
             const options = {
                 token: tokenAddress, //token
@@ -62,7 +62,7 @@ describe("Staker Factory", function () {
             //Allow factory  to spend tokens
             await token.approve(this.factoryAddress, options.rewardPoolToken);
             await this.factory.newStaker(options, {
-                value: options.rewardPoolEDU,
+                value: options.rewardPoolEDU + ethers.parseEther("1"), //Add creation fee
             });
 
             const deployedStakers = await this.factory.getdeployedStakers(this.deployerAddress);
@@ -88,19 +88,19 @@ describe("Staker Factory", function () {
                 tokenToEDURate,
             ] = await staker.option();
 
-            console.log({
-                _token,
-                staker: this.stakerAddress,
-                startDate,
-                endDate,
-                hardCap,
-                minTokenStake,
-                _apyEdu,
-                _apyToken,
-                rewardPoolToken,
-                rewardPoolEDU,
-                tokenToEDURate,
-            });
+            // console.log({
+            //     _token,
+            //     staker: this.stakerAddress,
+            //     startDate,
+            //     endDate,
+            //     hardCap,
+            //     minTokenStake,
+            //     _apyEdu,
+            //     _apyToken,
+            //     rewardPoolToken,
+            //     rewardPoolEDU,
+            //     tokenToEDURate,
+            // });
 
             await this.token.approve(this.stakerAddress, ethers.parseEther("1000"));
             await this.staker.directStake(ethers.parseEther("1000"), 0);
@@ -110,7 +110,7 @@ describe("Staker Factory", function () {
             // assert.equal(await ethers.provider.getBalance(address), opt.rewardPoolEDU);
         });
 
-        it.skip("Should test staking", async function () {
+        it("Should test staking", async function () {
             const estimateReward = await this.staker.calculateRewards(
                 ethers.parseEther("1000"),
                 60 * 600 * 24 * 30
@@ -129,9 +129,30 @@ describe("Staker Factory", function () {
             //check rewards
             console.log(await this.staker.getClaimableRewards(this.deployerAddress));
 
-            console.log(await this.staker.claimAvailableRewards(0));
+            const res1 = await this.staker.claimAvailableRewards(0);
+            await res1.wait();
+            const res2 = await this.staker.claimAvailableRewards(1);
+            await res2.wait();
 
             //reward should be claimed
+            console.log(await this.staker.getClaimableRewards(this.deployerAddress));
+
+            await time.increaseTo((await time.latest()) + ONE_DAY_IN_SECS);
+
+            console.log(await this.staker.getClaimableRewards(this.deployerAddress));
+
+            const res3 = await this.staker.claimAvailableRewards(1);
+            await res3.wait();
+
+            console.log(await this.staker.getClaimableRewards(this.deployerAddress));
+
+            await time.increaseTo((await time.latest()) + ONE_DAY_IN_SECS * 2);
+
+            console.log(await this.staker.getClaimableRewards(this.deployerAddress));
+
+            const res4 = await this.staker.claimAvailableRewards(1);
+            await res4.wait();
+
             console.log(await this.staker.getClaimableRewards(this.deployerAddress));
         });
 

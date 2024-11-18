@@ -3,17 +3,28 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "./ThrustpadInstantAirdrop.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ThrustpadInstantAirdropFactory {
+contract ThrustpadInstantAirdropFactory is Ownable {
     mapping(address => address[]) public deployedAirdrops;
 
     event AirdropCreated(address indexed airdrop, address indexed token);
+
+    uint256 public creationFee = 1 ether;
+
+    uint256 public feeEarned;
+
+    constructor() Ownable(msg.sender) {}
 
     function newInstantAirdrop(
         address _token,
         bytes32 _merkleRoot,
         uint256 totalAmount
-    ) external returns (address) {
+    ) external payable returns (address) {
+        require(
+            msg.value >= creationFee,
+            "ThrustpadInstantAirdropFactory: Insufficient fee"
+        );
         require(
             totalAmount > 0,
             "ThrustpadInstantAirdropFactory: Invalid amount"
@@ -34,6 +45,8 @@ contract ThrustpadInstantAirdropFactory {
         emit AirdropCreated(newAirdrop, _token);
 
         deployedAirdrops[msg.sender].push(newAirdrop);
+
+        feeEarned += msg.value;
 
         return newAirdrop;
     }
@@ -73,5 +86,19 @@ contract ThrustpadInstantAirdropFactory {
         address creator
     ) public view returns (address[] memory) {
         return deployedAirdrops[creator];
+    }
+
+    function setCreationFee(uint256 _fee) external onlyOwner {
+        creationFee = _fee;
+    }
+
+    receive() external payable {}
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawToken(address token) external onlyOwner {
+        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 }

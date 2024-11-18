@@ -3,11 +3,18 @@ pragma solidity ^0.8.24;
 
 import "./ThrustpadToken.sol";
 import "../interface/types.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ThrustpadTokenFactory {
+contract ThrustpadTokenFactory is Ownable {
     mapping(address => address[]) public deployedTokens;
 
     event NewToken(address indexed creator, address indexed token);
+
+    constructor() Ownable(msg.sender) {}
+
+    uint256 public creationFee = 1 ether;
+
+    uint256 public feeEarned;
 
     function newToken(
         string memory name,
@@ -15,7 +22,12 @@ contract ThrustpadTokenFactory {
         uint256 decimals,
         uint256 supply,
         LaunchType memory launchType
-    ) public returns (address) {
+    ) public payable returns (address) {
+        require(
+            msg.value >= creationFee,
+            "ThrustpadTokenFactory: Insufficient fee"
+        );
+
         address newLaunch = address(
             new ThrustpadToken{
                 salt: bytes32(deployedTokens[msg.sender].length)
@@ -24,6 +36,8 @@ contract ThrustpadTokenFactory {
         deployedTokens[msg.sender].push(newLaunch);
 
         emit NewToken(msg.sender, newLaunch);
+
+        feeEarned += msg.value;
 
         return address(newLaunch);
     }
@@ -70,5 +84,15 @@ contract ThrustpadTokenFactory {
         address creator
     ) public view returns (address[] memory) {
         return deployedTokens[creator];
+    }
+
+    receive() external payable {}
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawToken(address token) external onlyOwner {
+        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 }

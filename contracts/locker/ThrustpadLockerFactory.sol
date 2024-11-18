@@ -3,8 +3,9 @@ pragma solidity ^0.8.24;
 
 import "./ThrustpadLocker.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ThrustpadLockerFactory {
+contract ThrustpadLockerFactory is Ownable {
     mapping(address => address[]) public deployedLocks;
 
     event NewLock(
@@ -13,11 +14,22 @@ contract ThrustpadLockerFactory {
         uint256 amount
     );
 
+    uint256 public creationFee = 1 ether;
+
+    uint256 public feeEarned;
+
+    constructor() Ownable(msg.sender) {}
+
     function newLock(
         IERC20 token,
         uint256 lockTime,
         uint256 amount
-    ) public returns (address) {
+    ) public payable returns (address) {
+        require(
+            msg.value >= creationFee,
+            "ThrustpadLockerFactory: Insufficient fee"
+        );
+
         address newLocker = address(
             new ThrustpadLocker{
                 salt: bytes32(deployedLocks[msg.sender].length)
@@ -28,6 +40,8 @@ contract ThrustpadLockerFactory {
         token.transferFrom(msg.sender, newLocker, amount);
 
         emit NewLock(msg.sender, newLocker, amount);
+
+        feeEarned += msg.value;
 
         return address(newLocker);
     }
@@ -68,5 +82,15 @@ contract ThrustpadLockerFactory {
         address creator
     ) public view returns (address[] memory) {
         return deployedLocks[creator];
+    }
+
+    receive() external payable {}
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawToken(address token) external onlyOwner {
+        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 }

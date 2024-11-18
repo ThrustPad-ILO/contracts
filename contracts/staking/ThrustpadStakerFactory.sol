@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "./ThrustpadStaker.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/types.sol";
 
 /**
@@ -11,7 +12,7 @@ import "../interface/types.sol";
  * Must deposit EDU APY of hardcap to cover yields payout
  * amount must be greater or equal deposit token APY
  */
-contract ThrustpadStakerFactory {
+contract ThrustpadStakerFactory is Ownable {
     mapping(address => address[]) public deployedStakers;
 
     event NewStaking(
@@ -19,6 +20,12 @@ contract ThrustpadStakerFactory {
         address indexed token,
         address indexed staker
     );
+
+    constructor() Ownable(msg.sender) {}
+
+    uint256 public creationFee = 1 ether;
+
+    uint256 public feeEarned;
 
     function newStaker(
         stakeOption memory option
@@ -35,8 +42,8 @@ contract ThrustpadStakerFactory {
             option.tokenToEDURate;
 
         require(
-            msg.value >= eduNeeded,
-            "EDU deposit to cover yields payout not enough"
+            msg.value >= eduNeeded + creationFee,
+            "EDU deposit to cover yields payout and Fees not enough"
         );
         require(
             tokenNeeded >= option.rewardPoolToken,
@@ -96,5 +103,15 @@ contract ThrustpadStakerFactory {
         address creator
     ) public view returns (address[] memory) {
         return deployedStakers[creator];
+    }
+
+    receive() external payable {}
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawToken(address token) external onlyOwner {
+        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 }

@@ -5,15 +5,28 @@ import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./ThrustpadFairLaunch.sol";
 import "../interface/types.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ThrustpadFairLaunchFactory {
+contract ThrustpadFairLaunchFactory is Ownable {
     mapping(address => address[]) public deployedLaunches;
 
     event NewFairLaunch(address indexed creator, address indexed launch);
 
+    uint256[] public creationFees = [1 ether];
+
+    uint256 public feeEarned;
+
+    constructor() Ownable(msg.sender) {}
+
     function newFairLaunch(
         FairLaunchConfig memory config
-    ) public returns (address) {
+    ) public payable returns (address) {
+        //Basic plan fee must be paid
+        require(
+            msg.value >= creationFees[0],
+            "ThrustpadFairLaunchFactory: Insufficient fee"
+        );
+
         require(
             ERC20(config.token).decimals() == 18,
             "ThrustpadFairLaunchFactory: token must have 18 decimals"
@@ -121,5 +134,19 @@ contract ThrustpadFairLaunchFactory {
         address creator
     ) public view returns (address[] memory) {
         return deployedLaunches[creator];
+    }
+
+    function setCreationFees(uint256[] memory _fees) external onlyOwner {
+        creationFees = _fees;
+    }
+
+    receive() external payable {}
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawToken(address token) external onlyOwner {
+        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 }
