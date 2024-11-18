@@ -85,7 +85,7 @@ contract ThrustpadFairLaunchFactory is Ownable {
         address newLaunch = address(
             new ThrustpadFairLaunch{
                 salt: bytes32(deployedLaunches[msg.sender].length)
-            }(config)
+            }(config, msg.sender)
         );
         deployedLaunches[msg.sender].push(newLaunch);
 
@@ -117,11 +117,12 @@ contract ThrustpadFairLaunchFactory is Ownable {
     }
 
     function getBytecode(
-        FairLaunchConfig memory config
+        FairLaunchConfig memory config,
+        address _owner
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadFairLaunch).creationCode;
 
-        return abi.encodePacked(bytecode, abi.encode(config));
+        return abi.encodePacked(bytecode, abi.encode(config, _owner));
     }
 
     function getdeployedLaunchesLen(

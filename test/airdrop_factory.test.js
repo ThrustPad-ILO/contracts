@@ -31,7 +31,11 @@ describe("Airdrop Factory", function () {
             const totalAmountTokens = 5500 + 4500 + 3500;
             const root = "0xe59de657a3a0180809970c56efa81b86ab6a5dde06c75cdf738bb8eeb8023873";
 
-            const byteCode = await this.factory.getBytecode(tokenAddress, root);
+            const byteCode = await this.factory.getBytecode(
+                tokenAddress,
+                root,
+                this.deployerAddress
+            );
             const salt = await this.factory.getdeployedAirdropsLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);
 
@@ -42,7 +46,10 @@ describe("Airdrop Factory", function () {
             await this.factory.newInstantAirdrop(
                 tokenAddress,
                 root,
-                ethers.parseEther(totalAmountTokens.toString())
+                ethers.parseEther(totalAmountTokens.toString()),
+                {
+                    value: ethers.parseEther("1"),
+                }
             );
 
             const deployedLaunches = await this.factory.getdeployedAirdrops(this.deployerAddress);

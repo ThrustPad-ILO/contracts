@@ -171,7 +171,7 @@ describe("Locker Factory", function () {
             };
             const totalAmountTokensUserNeedForLaunch =
                 _amountForSale + (_percentageForLiquidity * _hardCap * _listingRate) / 100;
-            const byteCode = await this.factory.getBytecode(option);
+            const byteCode = await this.factory.getBytecode(option, this.deployerAddress);
 
             const salt = await this.factory.getdeployedLaunchesLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);

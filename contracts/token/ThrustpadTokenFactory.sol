@@ -32,7 +32,7 @@ contract ThrustpadTokenFactory is Ownable {
         address newLaunch = address(
             new ThrustpadToken{
                 salt: bytes32(deployedTokens[msg.sender].length)
-            }(name, symbol, decimals, supply, launchType)
+            }(name, symbol, decimals, supply, launchType, msg.sender)
         );
         deployedTokens[msg.sender].push(newLaunch);
 
@@ -64,14 +64,15 @@ contract ThrustpadTokenFactory is Ownable {
         string memory symbol,
         uint256 decimals,
         uint256 supply,
-        LaunchType memory launchType
+        LaunchType memory launchType,
+        address _owner
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadToken).creationCode;
 
         return
             abi.encodePacked(
                 bytecode,
-                abi.encode(name, symbol, decimals, supply, launchType)
+                abi.encode(name, symbol, decimals, supply, launchType, _owner)
             );
     }
 

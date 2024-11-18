@@ -55,7 +55,7 @@ describe("Staker Factory", function () {
                 rewardPoolEDU: ethers.parseEther(rewardDepositEdu.toString()), //total reward pool edu,
                 tokenToEDURate: rate, //rate meaning 1 edu = 10,000 token : help to calculate reward since no price oracle to get live price
             };
-            const byteCode = await this.factory.getBytecode(options);
+            const byteCode = await this.factory.getBytecode(options, this.deployerAddress);
             const salt = await this.factory.getdeployedStakersLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);
 

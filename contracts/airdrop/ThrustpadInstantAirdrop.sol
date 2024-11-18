@@ -15,7 +15,11 @@ contract ThrustpadInstantAirdrop is Ownable, ReentrancyGuard {
 
     uint256 public totalClaimed;
 
-    constructor(address _token, bytes32 _merkleRoot) Ownable(tx.origin) {
+    constructor(
+        address _token,
+        bytes32 _merkleRoot,
+        address _owner
+    ) Ownable(_owner) {
         token = IERC20(_token);
         merkleRoot = _merkleRoot;
     }

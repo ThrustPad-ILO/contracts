@@ -17,8 +17,9 @@ contract ThrustpadToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
         string memory symbol,
         uint256 tokenDecimals,
         uint256 supply,
-        LaunchType memory _launchType
-    ) ERC20(name, symbol) Ownable(tx.origin) {
+        LaunchType memory _launchType,
+        address _owner
+    ) ERC20(name, symbol) Ownable(_owner) {
         _decimals = tokenDecimals;
         _mint(tx.origin, supply * 10 ** tokenDecimals);
         launchType = _launchType;

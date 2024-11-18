@@ -34,8 +34,9 @@ contract ThrustpadLocker is Ownable {
     constructor(
         IERC20 _token,
         uint256 _lockTime,
-        uint256 _amount
-    ) Ownable(tx.origin) {
+        uint256 _amount,
+        address _owner
+    ) Ownable(_owner) {
         require(_lockTime > 0, "TokenLock: lock time should greater than 0");
         token = _token;
         beneficiary = tx.origin;

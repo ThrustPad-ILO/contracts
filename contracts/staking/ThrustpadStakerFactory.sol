@@ -54,7 +54,7 @@ contract ThrustpadStakerFactory is Ownable {
             new ThrustpadStaker{
                 value: msg.value,
                 salt: bytes32(deployedStakers[msg.sender].length)
-            }(option)
+            }(option, msg.sender)
         );
         deployedStakers[msg.sender].push(newStaking);
 
@@ -86,11 +86,12 @@ contract ThrustpadStakerFactory is Ownable {
     }
 
     function getBytecode(
-        stakeOption memory option
+        stakeOption memory option,
+        address _owner
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadStaker).creationCode;
 
-        return abi.encodePacked(bytecode, abi.encode(option));
+        return abi.encodePacked(bytecode, abi.encode(option, _owner));
     }
 
     function getdeployedStakersLen(

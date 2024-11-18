@@ -33,7 +33,7 @@ contract ThrustpadInstantAirdropFactory is Ownable {
         address newAirdrop = address(
             new ThrustpadInstantAirdrop{
                 salt: bytes32(deployedAirdrops[msg.sender].length)
-            }(_token, _merkleRoot)
+            }(_token, _merkleRoot, msg.sender)
         );
 
         IERC20(_token).transferFrom(
@@ -69,11 +69,13 @@ contract ThrustpadInstantAirdropFactory is Ownable {
 
     function getBytecode(
         address _token,
-        bytes32 _merkleRoot
+        bytes32 _merkleRoot,
+        address _owner
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadInstantAirdrop).creationCode;
 
-        return abi.encodePacked(bytecode, abi.encode(_token, _merkleRoot));
+        return
+            abi.encodePacked(bytecode, abi.encode(_token, _merkleRoot, _owner));
     }
 
     function getdeployedAirdropsLen(

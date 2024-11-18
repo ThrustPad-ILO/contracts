@@ -29,7 +29,8 @@ describe("Token Factory", function () {
             symbol,
             decimals,
             tokenSupply,
-            launchType
+            launchType,
+            this.deployerAddress
         );
 
         this.byteCode = byteCode;
@@ -74,7 +75,8 @@ describe("Token Factory", function () {
                 symbol,
                 decimals,
                 tokenSupply,
-                launchType
+                launchType,
+                this.deployerAddress
             );
 
             const salt = await this.factory.getdeployedTokensLen(this.deployerAddress);

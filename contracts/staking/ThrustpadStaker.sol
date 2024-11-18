@@ -74,7 +74,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
     event APYUpdated(uint256 eduAPY, uint256 tokenAPY);
     event PricesUpdated(uint256 ethPrice, uint256 TokenPrice);
 
-    constructor(stakeOption memory _option) payable Ownable(tx.origin) {
+    constructor(stakeOption memory _option, address _owner) payable Ownable(_owner) {
         //set params
         option = _option;
         token = IERC20(_option.token);
@@ -201,6 +201,7 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         require(stake.owner == msg.sender, "Not owner");
 
         stake.unstaked = true;
+        totalStaked -= stake.amount;
 
         require(token.transfer(msg.sender, stake.amount), "Transfer failed");
 
@@ -301,29 +302,28 @@ contract ThrustpadStaker is Ownable, Pausable, ReentrancyGuard {
         claimAmt = amount - stakeAmt;
     }
 
-    // function updateAPY(
-    //     uint256 _eduAPY,
-    //     uint256 _tokenAPY
-    // ) external whenNotPaused onlyOwner {
-    //     option.apyEdu = _eduAPY;
-    //     option.apyToken = _tokenAPY;
+    function withdrawBalance(address recipient) public onlyOwner {
+        require(
+            block.timestamp >= option.endDate + 90 days,
+            "Cool down period"
+        );
 
-    //     emit APYUpdated(_eduAPY, _tokenAPY);
-    // }
+        uint256 eduBal = option.rewardPoolEDU - totalRewardsEDU;
+        uint256 tokenBal = option.rewardPoolToken - totalRewardsToken;
 
-    // withdraw functions
-    function withdrawEDU200(
-        address recipient,
-        uint256 amount
-    ) public onlyOwner {
-        payable(address(recipient)).transfer(amount);
-    }
+        if (address(this).balance > eduBal) {
+            payable(address(recipient)).transfer(eduBal);
+        }
 
-    function withdrawToken200(
-        address recipient,
-        uint256 amount
-    ) public onlyOwner {
-        require(token.transfer(address(recipient), amount), "Transfer failed");
+        if (
+            IERC20(option.token).balanceOf(address(this)) - totalStaked >
+            tokenBal
+        ) {
+            require(
+                IERC20(option.token).transfer(address(recipient), tokenBal),
+                "Transfer failed"
+            );
+        }
     }
 
     receive() external payable {}

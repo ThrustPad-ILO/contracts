@@ -24,7 +24,12 @@ describe("Locker Factory", function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();
             const tokenAddress = await token.getAddress();
-            const byteCode = await this.factory.getBytecode(tokenAddress, twenty4Hours, amount);
+            const byteCode = await this.factory.getBytecode(
+                tokenAddress,
+                twenty4Hours,
+                amount,
+                this.deployerAddress
+            );
 
             const salt = await this.factory.getdeployedLocksLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);
@@ -53,7 +58,12 @@ describe("Locker Factory", function () {
             const MockToken = await ethers.getContractFactory("MockToken");
             const token = await MockToken.deploy();
             const tokenAddress = await token.getAddress();
-            const byteCode = await this.factory.getBytecode(tokenAddress, twenty4Hours, amount);
+            const byteCode = await this.factory.getBytecode(
+                tokenAddress,
+                twenty4Hours,
+                amount,
+                this.deployerAddress
+            );
 
             const salt = await this.factory.getdeployedLocksLen(this.deployerAddress);
             const address = await this.factory.getAddressCreate2(byteCode, salt);

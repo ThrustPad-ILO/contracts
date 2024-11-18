@@ -67,7 +67,10 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
 
     address THRUSTPAD_MULTISIG = 0x83E46e6E193B284d26f7A4B7D865B65952A50Bf2;
 
-    constructor(FairLaunchConfig memory _config) Ownable(tx.origin) {
+    constructor(
+        FairLaunchConfig memory _config,
+        address _owner
+    ) Ownable(_owner) {
         config = _config;
     }
 

@@ -33,7 +33,7 @@ contract ThrustpadLockerFactory is Ownable {
         address newLocker = address(
             new ThrustpadLocker{
                 salt: bytes32(deployedLocks[msg.sender].length)
-            }(token, lockTime, amount)
+            }(token, lockTime, amount, msg.sender)
         );
         deployedLocks[msg.sender].push(newLocker);
 
@@ -65,11 +65,16 @@ contract ThrustpadLockerFactory is Ownable {
     function getBytecode(
         address token,
         uint256 lockTime,
-        uint256 amount
+        uint256 amount,
+        address _owner
     ) public pure returns (bytes memory) {
         bytes memory bytecode = type(ThrustpadLocker).creationCode;
 
-        return abi.encodePacked(bytecode, abi.encode(token, lockTime, amount));
+        return
+            abi.encodePacked(
+                bytecode,
+                abi.encode(token, lockTime, amount, _owner)
+            );
     }
 
     function getdeployedLocksLen(
