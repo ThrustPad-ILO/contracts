@@ -18,6 +18,6 @@ async function main() {
 main();
 
 //npx hardhat run scripts/deploy-airdrop-factory.js --network opencampus
-//factory Address deployed to:  0x243d3Ed80c9D0B530574E005F0626acf7A02CD33
-//npx hardhat verify --network opencampus 0x243d3Ed80c9D0B530574E005F0626acf7A02CD33
+//factory Address deployed to:  0x7D00C6e9389D2D50055B73aF92a2d4C9B91Ce350
+//npx hardhat verify --network opencampus 0x7D00C6e9389D2D50055B73aF92a2d4C9B91Ce350
 //https://opencampus-codex.blockscout.com/address/0x243d3Ed80c9D0B530574E005F0626acf7A02CD33#code

@@ -18,6 +18,6 @@ async function main() {
 main();
 
 //npx hardhat run scripts/deploy-fair-launch-factory.js --network opencampus
-//factory Address deployed to:  0xAB1Eee87C843D38ab7CC4a26383000b291998130
-//npx hardhat verify --network opencampus 0xAB1Eee87C843D38ab7CC4a26383000b291998130
-//https://opencampus-codex.blockscout.com/address/0xAB1Eee87C843D38ab7CC4a26383000b291998130#code
+//factory Address deployed to:  0x715054335FfF3254223B4d4897420276E183b8e0
+//npx hardhat verify --network opencampus 0x715054335FfF3254223B4d4897420276E183b8e0
+//https://opencampus-codex.blockscout.com/address/0x715054335FfF3254223B4d4897420276E183b8e0#code

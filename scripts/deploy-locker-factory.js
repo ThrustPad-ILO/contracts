@@ -16,6 +16,6 @@ async function main() {
 main();
 
 //npx hardhat run scripts/deploy-locker-factory.js --network opencampus
-//factory Address deployed to:  0xe1B2a006271D9cBDF2561091FafF7E23281Eefe7
-//npx hardhat verify --network opencampus 0xe1B2a006271D9cBDF2561091FafF7E23281Eefe7
-//https://opencampus-codex.blockscout.com/address/0xe1B2a006271D9cBDF2561091FafF7E23281Eefe7#code
+//factory Address deployed to:  0xF884678BFd53C80a21331F58B853a63Bfd7EfFf6
+//npx hardhat verify --network opencampus 0xF884678BFd53C80a21331F58B853a63Bfd7EfFf6
+//https://opencampus-codex.blockscout.com/address/0xF884678BFd53C80a21331F58B853a63Bfd7EfFf6#code

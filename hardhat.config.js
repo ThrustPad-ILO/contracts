@@ -28,8 +28,8 @@ module.exports = {
                 network: "opencampus",
                 chainId: 656476,
                 urls: {
-                    apiURL: "https://opencampus-codex.blockscout.com/api",
-                    browserURL: "https://opencampus-codex.blockscout.com",
+                    apiURL: "https://rpc.open-campus-codex.gelato.digital/",
+                    browserURL: "https://edu-chain-testnet.blockscout.com/",
                 },
             },
         ],
