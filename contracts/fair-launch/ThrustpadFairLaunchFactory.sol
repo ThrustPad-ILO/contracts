@@ -12,7 +12,7 @@ contract ThrustpadFairLaunchFactory is Ownable {
 
     event NewFairLaunch(address indexed creator, address indexed launch);
 
-    uint256[] public creationFees = [1 ether];
+    uint256[] public creationFees = [1 ether, 5 ether, 10 ether, 25 ether];
 
     uint256 public feeEarned;
 
@@ -137,8 +137,12 @@ contract ThrustpadFairLaunchFactory is Ownable {
         return deployedLaunches[creator];
     }
 
-    function setCreationFees(uint256[] memory _fees) external onlyOwner {
+    function upadateCreationFees(uint256[] memory _fees) external onlyOwner {
         creationFees = _fees;
+    }
+
+    function getCreationFees() external view returns (uint256[] memory) {
+        return creationFees;
     }
 
     receive() external payable {}

@@ -96,6 +96,10 @@ contract ThrustpadInstantAirdropFactory is Ownable {
 
     receive() external payable {}
 
+    function updateCreationFee(uint256 _fee) external onlyOwner {
+        creationFee = _fee;
+    }
+    
     function withdraw() external onlyOwner {
         payable(owner()).transfer(address(this).balance);
     }

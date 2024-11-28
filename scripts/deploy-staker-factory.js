@@ -15,7 +15,7 @@ async function main() {
 
 main();
 
-//npx hardhat run scripts/deploy-token-factory.js --network opencampus
-//factory Address deployed to:  0x9221E4Cb61908c31e825C0E0B02342f54183F0aa
-//npx hardhat verify --network opencampus 0x9221E4Cb61908c31e825C0E0B02342f54183F0aa
-//https://opencampus-codex.blockscout.com/address/0x9221E4Cb61908c31e825C0E0B02342f54183F0aa#code
+//npx hardhat run scripts/deploy-staker-factory.js --network opencampus
+//factory Address deployed to:  0x4829aAfc2BEC24153A07bF3003f9a120F03E67fe
+//npx hardhat verify --network opencampus 0x4829aAfc2BEC24153A07bF3003f9a120F03E67fe
+//https://opencampus-codex.blockscout.com/address/0x4829aAfc2BEC24153A07bF3003f9a120F03E67fe#code

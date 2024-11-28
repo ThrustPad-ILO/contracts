@@ -61,9 +61,9 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
     mapping(address => uint256) public purchaseHistory;
     mapping(address => uint256) public claimed; //Token claim or refund
 
-    address sailFishStablePoolFactory =
-        0x1CcC7382d46313C24e1D13510B1C9445A792f4d4;
-    address sailFishVault = 0xB97582DCB6F2866098cA210095a04dF3e11B76A6;
+    address sailFishPoolFactory =
+        0xa12fFa65079F3cF91B93fe059099e447C88cC9e9;
+    address sailFishVault = 0x74713Db9D9cc38a7120b9dA60F582c1861BC1c8a;
 
     address THRUSTPAD_MULTISIG = 0x83E46e6E193B284d26f7A4B7D865B65952A50Bf2;
 
@@ -192,7 +192,7 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
         pair = IVault(sailFishVault).getPair(config.token, address(0x0));
 
         if (pair == address(0x0)) {
-            pair = IFactory(sailFishStablePoolFactory).deploy(
+            pair = IFactory(sailFishPoolFactory).deploy(
                 NATIVE_TOKEN,
                 toToken(IERC20(config.token))
             );
