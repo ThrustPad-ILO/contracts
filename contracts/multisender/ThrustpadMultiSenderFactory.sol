@@ -17,7 +17,7 @@ contract ThrustpadMultiSenderFactory is Ownable {
 
     uint256 public feeEarned;
 
-    uint8 maxReceivers = 100;
+    uint256 public maxReceivers = 100;
 
     function newMultisender(
         address token,
@@ -121,6 +121,10 @@ contract ThrustpadMultiSenderFactory is Ownable {
     }
 
     receive() external payable {}
+
+    function updateMaxReceivers(uint256 _maxReceivers) external onlyOwner {
+        maxReceivers = _maxReceivers;
+    }
 
     function updateCreationFee(uint256 _fee) external onlyOwner {
         creationFee = _fee;
