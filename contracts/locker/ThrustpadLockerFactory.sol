@@ -14,7 +14,7 @@ contract ThrustpadLockerFactory is Ownable {
         uint256 amount
     );
 
-    uint256 public creationFee = 1 ether;
+    uint256 public creationFee = 5 ether;
 
     uint256 public feeEarned;
 
@@ -94,7 +94,7 @@ contract ThrustpadLockerFactory is Ownable {
     function updateCreationFee(uint256 _fee) external onlyOwner {
         creationFee = _fee;
     }
-    
+
     function withdraw() external onlyOwner {
         payable(owner()).transfer(address(this).balance);
     }

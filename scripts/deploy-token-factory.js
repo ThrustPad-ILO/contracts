@@ -19,3 +19,6 @@ main();
 //factory Address deployed to:  0x8c09Fc4a8210EA063d028578EFD453e2239044Ae
 //npx hardhat verify --network opencampus 0x8c09Fc4a8210EA063d028578EFD453e2239044Ae
 //https://opencampus-codex.blockscout.com/address/0x8c09Fc4a8210EA063d028578EFD453e2239044Ae#code
+
+//npx hardhat run scripts/deploy-token-factory.js --network educhain
+//factory Address deployed to:  0xDA2Df698849b884109970dD31639547107589E2f

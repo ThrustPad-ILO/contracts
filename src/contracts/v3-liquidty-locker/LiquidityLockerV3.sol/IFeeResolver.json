@@ -1,0 +1,62 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IFeeResolver",
+  "sourceName": "contracts/v3-liquidty-locker/LiquidityLockerV3.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "r",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "useFee",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lpFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "collectFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "flatFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "flatFeeToken",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct ILiquidityLockerV3.FeeStruct",
+          "name": "fee",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

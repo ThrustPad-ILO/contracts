@@ -23,7 +23,7 @@ contract ThrustpadStakerFactory is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    uint256 public creationFee = 1 ether;
+    uint256 public creationFee = 0.001 ether;
 
     uint256 public feeEarned;
 

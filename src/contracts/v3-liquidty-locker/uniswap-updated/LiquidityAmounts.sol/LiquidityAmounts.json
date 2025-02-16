@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "LiquidityAmounts",
+  "sourceName": "contracts/v3-liquidty-locker/uniswap-updated/LiquidityAmounts.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea26469706673582212203f386d2e92dc0effd821976b60a2a2b0a09c679aba9394c13d478e829379a69564736f6c63430008180033",
+  "deployedBytecode": "0x600080fdfea26469706673582212203f386d2e92dc0effd821976b60a2a2b0a09c679aba9394c13d478e829379a69564736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

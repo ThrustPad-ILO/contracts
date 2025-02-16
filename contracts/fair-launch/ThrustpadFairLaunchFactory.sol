@@ -12,11 +12,55 @@ contract ThrustpadFairLaunchFactory is Ownable {
 
     event NewFairLaunch(address indexed creator, address indexed launch);
 
-    uint256[] public creationFees = [1 ether, 5 ether, 10 ether, 25 ether];
+    uint256[] public creationFees = [0.001 ether, 5 ether, 10 ether, 25 ether];
 
     uint256 public feeEarned;
 
     constructor() Ownable(msg.sender) {}
+
+    function calculateTokenSaleRate(
+        uint256 _amountForSale,
+        uint256 _hardCap,
+        uint8 _decimals
+    ) public pure returns (uint256) {
+        // First calculate the base rate without decimals
+        uint256 baseRate = _amountForSale / _hardCap; // 20,000 tokens per EDU
+        // Then multiply by the decimal precision
+        return baseRate * 10 ** _decimals;
+    }
+
+    function getTotalAmount(
+        FairLaunchConfig memory config
+    ) public pure returns (uint256) {
+        uint256 totalAmount;
+
+        unchecked {
+            totalAmount =
+                config.amountForSale +
+                (config.percentageForLiquidity *
+                    config.hardCap *
+                    config.listingRate) /
+                (100 * 1 ether);
+        }
+
+        return totalAmount;
+    }
+
+    function calculateTotalTokensNeeded(
+        uint256 hardCap,
+        uint256 saleAmount,
+        uint256 percentageForLiquidity,
+        uint256 listingRate,
+        uint256 tokenDecimals
+    ) public pure returns (uint256) {
+        uint256 tokensForLiquidity = ((percentageForLiquidity *
+            hardCap *
+            listingRate) / (100 * 10 ** (18 + tokenDecimals))) *
+            10 ** tokenDecimals;
+
+        // Return total tokens needed in token decimals
+        return saleAmount + tokensForLiquidity;
+    }
 
     function newFairLaunch(
         FairLaunchConfig memory config
@@ -27,10 +71,10 @@ contract ThrustpadFairLaunchFactory is Ownable {
             "ThrustpadFairLaunchFactory: Insufficient fee"
         );
 
-        require(
-            ERC20(config.token).decimals() == 18,
-            "ThrustpadFairLaunchFactory: token must have 18 decimals"
-        );
+        // require(
+        //     ERC20(config.token).decimals() == 18,
+        //     "ThrustpadFairLaunchFactory: token must have 18 decimals"
+        // );
 
         require(
             config.percentageForLiquidity >= 60,
@@ -45,48 +89,70 @@ contract ThrustpadFairLaunchFactory is Ownable {
             "ThrustpadFairLaunchFactory: percentage for Liquidity + percentage for Team must be equal to 100"
         );
 
-        uint256 totalAmount;
+        uint256 totalAmount = calculateTotalTokensNeeded(
+            config.hardCap,
+            config.amountForSale,
+            config.percentageForLiquidity,
+            config.listingRate,
+            ERC20(config.token).decimals()
+        );
 
-        unchecked {
-            require(
-                config.softCap >= config.hardCap / 4,
-                "ThrustpadFairLaunchFactory: softCap must be greater than or equal to 25% of hardCap"
-            );
-            /**
-             * Here's the Math:
-             * if hardCap is 100 EDU and amountForSale is 10,000 Tokens
-             * presale rate is 100 Tokens per EDU token.
-             *
-             * If listing rate is 90 Tokens per EDU token,
-             * assuming percentageForLiquidity 60% of hardCap and hardCap of 100 EDU is reached
-             * totalAmount of token required = amountForSale + (percentageForLiquidity * hardCap * listingRate)
-             *
-             * totalAmount  = 10,000 + (0.6 * 100 * 90) = 15,400
-             *                      OR
-             * totalAmount = 10,000 + (60 * 100 * 90)/100 = 15,400
-             *
-             * 10,000 will be claimed by purchasers and 5,400 will be locked in liquidity pool
-             *
-             * 60 EDU for 5400 Tokens.
-             *
-             * 1 EDU for 90 Tokens
-             */
-            totalAmount =
-                config.amountForSale +
-                (config.percentageForLiquidity *
-                    config.hardCap *
-                    config.listingRate) /
-                (100 * 1 ether);
-        }
+        // uint8 decimals = ERC20(config.token).decimals();
+
+        // uint256 totalAmount = calculateTokenSaleRate(
+        //     config.amountForSale,
+        //     config.hardCap,
+        //     decimals
+        // );
+
+        // unchecked {
+        //     require(
+        //         config.softCap >= config.hardCap / 4,
+        //         "ThrustpadFairLaunchFactory: softCap must be greater than or equal to 25% of hardCap"
+        //     );
+        //     /**
+        //      * Here's the Math:
+        //      * if hardCap is 100 EDU and amountForSale is 10,000 Tokens
+        //      * presale rate is 100 Tokens per EDU token.
+        //      *
+        //      * If listing rate is 90 Tokens per EDU token,
+        //      * assuming percentageForLiquidity 60% of hardCap and hardCap of 100 EDU is reached
+        //      * totalAmount of token required = amountForSale + (percentageForLiquidity * hardCap * listingRate)
+        //      *
+        //      * totalAmount  = 10,000 + (0.6 * 100 * 90) = 15,400
+        //      *                      OR
+        //      * totalAmount = 10,000 + (60 * 100 * 90)/100 = 15,400
+        //      *
+        //      * 10,000 will be claimed by purchasers and 5,400 will be locked in liquidity pool
+        //      *
+        //      * 60 EDU for 5400 Tokens.
+        //      *
+        //      * 1 EDU for 90 Tokens
+        //      */
+        //     totalAmount =
+        //         config.amountForSale +
+        //         (config.percentageForLiquidity *
+        //             config.hardCap *
+        //             config.listingRate) /
+        //         (100 * 1 ether);
+        // }
 
         //No need to check for allowance  given to factory is equal to totalAmount or
         //if user have enought balance of tokens equal to totalAmount
         //It will revert upon transferFrom if enough allowance is not given
+
+        // require(
+        //     IERC20(config.token).allowance(msg.sender, address(this)) >=
+        //         totalAmount,
+        //     "ThrustpadFairLaunchFactory: Insufficient allowance"
+        // );
+
         address newLaunch = address(
             new ThrustpadFairLaunch{
                 salt: bytes32(deployedLaunches[msg.sender].length)
             }(config, msg.sender)
         );
+
         deployedLaunches[msg.sender].push(newLaunch);
 
         IERC20(config.token).transferFrom(

@@ -13,7 +13,7 @@ contract ThrustpadMultiSenderFactory is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    uint256 public creationFee = 1 ether;
+    uint256 public creationFee = 10 ether;
 
     uint256 public feeEarned;
 

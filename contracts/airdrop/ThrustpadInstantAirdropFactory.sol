@@ -10,7 +10,7 @@ contract ThrustpadInstantAirdropFactory is Ownable {
 
     event AirdropCreated(address indexed airdrop, address indexed token);
 
-    uint256 public creationFee = 1 ether;
+    uint256 public creationFee = 25 ether;
 
     uint256 public feeEarned;
 
@@ -99,7 +99,7 @@ contract ThrustpadInstantAirdropFactory is Ownable {
     function updateCreationFee(uint256 _fee) external onlyOwner {
         creationFee = _fee;
     }
-    
+
     function withdraw() external onlyOwner {
         payable(owner()).transfer(address(this).balance);
     }
