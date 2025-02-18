@@ -59,7 +59,7 @@ describe("FairLaunch Factory V2", function () {
       console.log(sqrtPticeX96.toString());
     });
 
-    it("Should deploy launch and user can buy and claim successfully", async function () {
+    it.only("Should deploy launch and user can buy and claim successfully", async function () {
       const _amountForSale = 1_000_000;
       const _hardCap = 10;
       const _softCap = 5; // softCap must be greater than or equal to 25% of hardCap
@@ -242,7 +242,7 @@ describe("FairLaunch Factory V2", function () {
       console.log(trx);
     });
 
-    it.only("Should deploy Liquidity", async function () {
+    it("Should deploy Liquidity", async function () {
       const launch = await ethers.getContractAt(
         "ThrustpadFairLaunch",
         iloAddress
