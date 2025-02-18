@@ -43,7 +43,14 @@ module.exports = {
   networks: {
     opencampus: {
       url: `https://rpc.open-campus-codex.gelato.digital/`,
-      accounts: [process.env.BETA_ACCOUNT_PRIVATE_KEY],
+      accounts: [
+        process.env.ACCOUNT3_PRIVATE_KEY,
+        process.env.PRIVATE_KEY,
+        process.env.BETA_ACCOUNT_PRIVATE_KEY,
+        process.env.BETA_ACCOUNT_PRIVATE_KEY_2,
+        process.env.PREPME_DEPLOYER_PRIVATE_KEY,
+        process.env.SKALE_DEPLOYER_PRIVATE_KEY,
+      ],
     },
     educhain: {
       url: "https://rpc.edu-chain.raas.gelato.cloud",
@@ -64,7 +71,6 @@ module.exports = {
           apiURL: "https://edu-chain-testnet.blockscout.com/api/",
           browserURL: "https://edu-chain-testnet.blockscout.com/",
         },
-        accounts: [process.env.BETA_ACCOUNT_PRIVATE_KEY],
       },
       {
         network: "educhain",
