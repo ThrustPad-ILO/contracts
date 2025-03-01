@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interface/types.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./interfaces/sailfish/IFactory.sol";
-import {IVault} from "./interfaces/sailfish/IVault.sol";
+// import "./interfaces/sailfish/IFactory.sol";
+// import {IVault} from "./interfaces/sailfish/IVault.sol";
 import {INonfungiblePositionManager} from "./INonfungiblePositionManager.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
@@ -203,10 +203,14 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
             totalSold >= config.softCap,
             "ThrustpadFairLaunch: soft cap not reached"
         );
+        require(
+            !liquidityDeployed,
+            "ThrustpadFairLaunch: liquidity already deployed"
+        );
 
         //Check if pair already exists for full range 0.3% fee
         //Revert if it already exist and request for manual deployment
-        //Else deploy liquidty full range 0.3% fee
+        //Else deploy liquidity full range 0.3% fee
         //@TODO: Lock LP NFT immediately after deployment for 1 month
 
         IUniswapV3Factory v3Factory = IUniswapV3Factory(V3Factory);
@@ -231,11 +235,10 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
 
         uint8 tokenDecimal = ERC20(config.token).decimals();
         uint256 eduAmount = (config.percentageForLiquidity * totalSold) / 100;
-        uint256 tokenAmount = eduAmount * (config.listingRate / tokenDecimal);
+        uint256 tokenAmount = (eduAmount * config.listingRate) /
+            10 ** tokenDecimal;
 
-        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) = INonfungiblePositionManager(
-            NFTManager
-        ).mint{value: eduAmount}(
+        INonfungiblePositionManager(NFTManager).mint{value: eduAmount}(
             INonfungiblePositionManager.MintParams({
                 token0: token0,
                 token1: token1,
@@ -255,16 +258,20 @@ contract ThrustpadFairLaunch is Ownable, ReentrancyGuard {
             })
         );
 
-        uint256 remainingToken = IERC20(config.token).balanceOf(address(this));
+        // uint256 pricePerToken = config.amountForSale / config.hardCap;
+        // uint256 totalTokenNeeded = tokenAmount +
+        //     ((totalSold * pricePerToken) / tokenDecimal);
+        // uint256 tokenBalance = IERC20(config.token).balanceOf(address(this));
 
-        if (remainingToken > 0) {
-            IERC20(config.token).transfer(
-                0x000000000000000000000000000000000000dEaD,
-                remainingToken
-            );
-        }
+        // if (tokenBalance > totalTokenNeeded) {
+        //     //Burn excess tokens
+        //     IERC20(config.token).transfer(
+        //         address(0x0),
+        //         tokenBalance - totalTokenNeeded
+        //     );
+        // }
 
-        emit LiquidityDeployed(tokenId, liquidity);
+        liquidityDeployed = true;
     }
 
     function emergencyTransferTokens(

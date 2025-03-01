@@ -6,9 +6,9 @@ const { parseEther, toBigInt } = ethers;
 const bn = require("bignumber.js");
 
 describe("FairLaunch Factory V2", function () {
-  const tokenAddress = "0x5285305a1c3Cf56f13dDee696676A41aAe5bB9b5";
+  const tokenAddress = "0x7b4De5B6b8487d4962D6363D092A9DB364583560";
   const wedu = "0x135E304139c5113895C97Dce8B9eDa56D4b53CF9";
-  const iloAddress = "0xD4a89f0952b4cb0b59c004944eDB29e9F5F48a23";
+  const iloAddress = "0x94624F4B2055C21544DF5931b807b5Bf24e84bb4";
 
   before(async function () {
     const [deployer, buyer1, buyer2, buyer3, buyer4, buyer5] =
@@ -50,23 +50,14 @@ describe("FairLaunch Factory V2", function () {
   };
 
   describe("Fair Launch Raise Success", function () {
-    it("Debug", async function () {
-      const sqrtPticeX96 = encodePriceSqrt(
-        parseEther("100000"),
-        parseEther("1")
-      );
-
-      console.log(sqrtPticeX96.toString());
-    });
-
-    it.only("Should deploy launch and user can buy and claim successfully", async function () {
+    it("Should deploy launch and user can buy and claim successfully", async function () {
       const _amountForSale = 1_000_000;
       const _hardCap = 10;
       const _softCap = 5; // softCap must be greater than or equal to 25% of hardCap
       const _percentageForLiquidity = 80;
       const _percentageForTeam = 20;
-      const _listingRate = 100_000;
-      const decimals = 12; //tokenDecimals
+      const _listingRate = 90_000;
+      const decimals = await this.token.decimals(); //tokenDecimals
 
       const latestBlock = await ethers.provider.getBlock("latest");
       const currentTimestamp = latestBlock.timestamp;
@@ -118,18 +109,11 @@ describe("FairLaunch Factory V2", function () {
         option.listingRate,
         decimals
       );
-      console.log({
-        factoryTotalAmount: ethers.formatUnits(factoryTotalAmount, decimals),
-      });
-
-      console.log(await this.factory.getTotalAmount(option));
 
       const byteCode = await this.factory.getBytecode(
         option,
         this.deployerAddress
       );
-
-      console.log({ totalAmountTokensUserNeedForLaunch });
 
       const salt = await this.factory.getdeployedLaunchesLen(
         this.deployerAddress
@@ -147,17 +131,26 @@ describe("FairLaunch Factory V2", function () {
           )
         );
 
-      console.log(tx_);
+      await tx_.wait();
 
       const tx = await this.factory.newFairLaunch(option, {
         value: ethers.parseEther("0.001"), //Add creation fee
       });
 
-      console.log(tx);
-
       const deployedLaunches = await this.factory.getdeployedLaunches(
         this.deployerAddress
       );
+
+      console.log({
+        factoryTotalAmount: ethers.formatUnits(factoryTotalAmount, decimals),
+        decimals,
+      });
+
+      console.log(await this.factory.getTotalAmount(option));
+
+      console.log({ totalAmountTokensUserNeedForLaunch });
+
+      console.log(tx);
 
       console.log(deployedLaunches);
       return;
@@ -242,28 +235,44 @@ describe("FairLaunch Factory V2", function () {
       console.log(trx);
     });
 
-    it("Should deploy Liquidity", async function () {
+    it.only("Should deploy Liquidity", async function () {
       const launch = await ethers.getContractAt(
         "ThrustpadFairLaunch",
         iloAddress
       );
 
+      const config = await launch.config();
       const totalSold = await launch.totalSold();
+      const listingRate = config[4];
+      const launchToken = config[0];
+      const feeTier = 3000;
 
-      console.log(await launch.config());
+      console.log(config);
       console.log(totalSold.toString());
       // return;
 
       const [token0, token1] =
-        Number(wedu) < Number(tokenAddress)
-          ? [wedu, tokenAddress]
-          : [tokenAddress, wedu];
+        Number(wedu) < Number(launchToken)
+          ? [wedu, launchToken]
+          : [launchToken, wedu];
+      const [reserve0, reserve1] =
+        Number(wedu) < Number(launchToken)
+          ? [1e18, listingRate]
+          : [listingRate, 1e18];
 
+      console.log({
+        launchToken,
+        listingRate,
+        token0,
+        token1,
+        feeTier,
+        priceSqrtX96: encodePriceSqrt(reserve1, reserve0),
+      });
       const trx = await launch.deployLiquidity(
         token0,
         token1,
-        500,
-        encodePriceSqrt(100_000e12, 1e18)
+        feeTier,
+        encodePriceSqrt(reserve1, reserve0)
       );
 
       console.log(trx);
